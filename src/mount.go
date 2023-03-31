@@ -16,6 +16,8 @@ const (
 	// 36  35  98:0 /mnt1 /mnt2 rw,noatime master:1 - ext3 /dev/root rw,errors=continue
 	// (0) (1) (2)   (3)   (4)      (5)      (6)   (7) (8)    (9)           (10)
 
+	// value of st_dev
+	mountinfoMajorMinor = 2
 	// last column in final table
 	mountinfoMountPoint = 4
 	// optional fields
@@ -77,6 +79,7 @@ func mounts() ([]Mount, []string, error) {
 		device := fields[mountinfoMountSource]
 		mountPoint := fields[mountinfoMountPoint]
 		fsType := fields[mountinfoFsType]
+		stDev := fields[mountinfoMajorMinor]
 
 		var stat unix.Statfs_t
 		err := unix.Statfs(mountPoint, &stat)
@@ -94,7 +97,7 @@ func mounts() ([]Mount, []string, error) {
 			Mountpoint: mountPoint,
 			Fstype:     fsType,
 			Type:       fsTypeMap[int64(stat.Type)],
-			Opts:       "",
+			Opts:       stDev,
 			Total:      (uint64(stat.Blocks) * uint64(stat.Bsize)) / 1024,
 			Free:       (uint64(stat.Bavail) * uint64(stat.Bsize)) / 1024,
 			Used:       ((uint64(stat.Blocks) - uint64(stat.Bfree)) * uint64(stat.Bsize)) / 1024,

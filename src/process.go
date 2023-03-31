@@ -1,15 +1,19 @@
 package main
 
 import (
-	// "fmt"
-	"strings"
+	"fmt"
+	"golang.org/x/exp/slices"
 )
 
 func getDefaultData(m []Mount) ([]Mount, error) {
 	var resultMounts []Mount
+	var uniqId []string
 	for i := 0; i < len(m); i++ {
-		if (m[i].DeviceType == localDevice || (m[i].Type == "tmpfs" && m[i].Fstype != "devtmpfs" && !strings.Contains(m[i].Mountpoint, "snap"))) {
-			resultMounts = append(resultMounts, m[i])
+		if (m[i].DeviceType == localDevice || (m[i].Type == "tmpfs" && m[i].Fstype != "devtmpfs")) {
+			if !slices.Contains(uniqId, m[i].Opts) {
+				uniqId = append(uniqId, m[i].Opts)
+				resultMounts = append(resultMounts, m[i])
+			}
 			// fmt.Println(m[i].DeviceType, m[i].Device, m[i].Fstype, m[i].Type)
 		}
 	}
@@ -17,13 +21,32 @@ func getDefaultData(m []Mount) ([]Mount, error) {
 }
 
 func getHumanData(m []Mount) ([]Mount, error) {
-	devider := float64(1024 * 1024)
+	// devider := float64(1024 * 1024)
 	resultMounts := m
 	for i := 0; i < len(m); i++ {
-		resultMounts[i].Total = uint64(float64(m[i].Total) / devider)
-		resultMounts[i].Used = uint64(float64(m[i].Used) / devider)
-		resultMounts[i].Free = uint64(float64(m[i].Free) / devider)
-		resultMounts[i].Blocks = uint64(float64(m[i].Blocks) / devider)
+		// tot, _ := strconv.Atoi(ByteCountBinary(int64(m[i].Total)))
+		// use, _ :=  strconv.Atoi(ByteCountBinary(int64(m[i].Used)))
+		// fre, _ :=  strconv.Atoi(ByteCountBinary(int64(m[i].Free)))
+		// blo, _ :=strconv.Atoi(ByteCountBinary(int64(m[i].Blocks)))
+		
+		// resultMounts[i].Total = uint64(tot)
+		// resultMounts[i].Used =  uint64(use)
+		// resultMounts[i].Free =  uint64(fre)
+		// resultMounts[i].Blocks =uint64(blo) 
+		
 	}
 	return resultMounts, nil
+}
+
+func ByteCountBinary(b int64) string {
+        const unit = 1024
+        if b < unit {
+                return fmt.Sprintf("%d B", b)
+        }
+        div, exp := int64(unit), 0
+        for n := b / unit; n >= unit; n /= unit {
+                div *= unit
+                exp++
+        }
+        return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }

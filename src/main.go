@@ -21,6 +21,7 @@ func main() {
 	// }
 
 	data, _ := getDefaultData(allData)
+
 	// process flags
 	if *allFlag {
 		data = allData
