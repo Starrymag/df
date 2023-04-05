@@ -9,7 +9,7 @@ func getDefaultData(m []Mount) ([]Mount, error) {
 	var resultMounts []Mount
 	var uniqId []string
 	for i := 0; i < len(m); i++ {
-		if (m[i].DeviceType == localDevice || (m[i].Type == "tmpfs" && m[i].Fstype != "devtmpfs")) {
+		if ((m[i].DeviceType == localDevice || (m[i].Type == "tmpfs" && m[i].Fstype != "devtmpfs")) && m[i].Total != 0) {
 			if !slices.Contains(uniqId, m[i].Opts) {
 				uniqId = append(uniqId, m[i].Opts)
 				resultMounts = append(resultMounts, m[i])
