@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"golang.org/x/exp/slices"
 )
 
-func getDefaultData(m []Mount) ([]Mount, error) {
+func getDefaultData() ([]Mount, error) {
+	m, _, _ := mounts(readFromFile)
 	var resultMounts []Mount
 	var uniqId []string
 	for i := 0; i < len(m); i++ {
@@ -20,33 +22,78 @@ func getDefaultData(m []Mount) ([]Mount, error) {
 	return resultMounts, nil
 }
 
-func getHumanData(m []Mount) ([]Mount, error) {
-	// devider := float64(1024 * 1024)
-	resultMounts := m
-	for i := 0; i < len(m); i++ {
-		// tot, _ := strconv.Atoi(ByteCountBinary(int64(m[i].Total)))
-		// use, _ :=  strconv.Atoi(ByteCountBinary(int64(m[i].Used)))
-		// fre, _ :=  strconv.Atoi(ByteCountBinary(int64(m[i].Free)))
-		// blo, _ :=strconv.Atoi(ByteCountBinary(int64(m[i].Blocks)))
-		
-		// resultMounts[i].Total = uint64(tot)
-		// resultMounts[i].Used =  uint64(use)
-		// resultMounts[i].Free =  uint64(fre)
-		// resultMounts[i].Blocks =uint64(blo) 
-		
+// func getHumanDataBin(m Mount) (Mount, error) {
+// 	resultMount
+// 	for i := 0; i < len(m); i++ {
+// 		resultMount.Total = ByteCountBin(int64(m[i].Total))
+// 		resultMount.Used = ByteCountBin(int64(m[i].Used))
+// 		resultMounts.Free = ByteCountBin(int64(m[i].Free))
+// 	}
+// 	return resultMounts, nil
+// }
+
+// func getHumanDataDec(m []Mount) ([]MountString, error) {
+// 	resultMounts := make([]MountString, 0, len(m))
+// 	for i := 0; i < len(m); i++ {
+// 		resultMounts[i].Total = ByteCountDec(int64(m[i].Total))
+// 		resultMounts[i].Used = ByteCountDec(int64(m[i].Used))
+// 		resultMounts[i].Free = ByteCountDec(int64(m[i].Free))
+// 	}
+// 	return resultMounts, nil
+// }
+
+func ByteCountDec(b uint64) string {
+	if b == 0 {
+		return "0"
 	}
-	return resultMounts, nil
+	bf := float64(b)
+	for _, unit := range []string{"K", "M", "G", "T", "P", "E", "Z"} {
+		if math.Abs(bf) < 1000.0 {
+			return fmt.Sprintf("%3.1f%s", bf, unit)
+		}
+		bf /= 1000.0
+	}
+	return fmt.Sprintf("%.1f", bf)
 }
 
-func ByteCountBinary(b int64) string {
-        const unit = 1024
-        if b < unit {
-                return fmt.Sprintf("%d B", b)
-        }
-        div, exp := int64(unit), 0
-        for n := b / unit; n >= unit; n /= unit {
-                div *= unit
-                exp++
-        }
-        return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
+func ByteCountBin(b uint64) string {
+	if b == 0 {
+		return "0"
+	}
+	bf := float64(b)
+	for _, unit := range []string{"K", "M", "G", "T", "P", "E", "Z"} {
+		if math.Abs(bf) < 1024.0 {
+			return fmt.Sprintf("%3.1f%s", bf, unit)
+		}
+		bf /= 1024.0
+	}
+	return fmt.Sprintf("%.1f", bf)
+}
+
+func InodeCountDec(b uint64) string {
+	if b == 0 {
+		return "0"
+	}
+	bf := int(b)
+	for _, unit := range []string{"", "K", "M", "B"} {
+		if bf < 1000 {
+			return fmt.Sprintf("%3d%s", bf, unit)
+		}
+		bf /= 1000
+	}
+	return fmt.Sprintf("%d", int(bf))
+}
+
+func InodeCountBin(b uint64) string {
+	if b == 0 {
+		return "0"
+	}
+	bf := int(b)
+	for _, unit := range []string{"", "K", "M", "B"} {
+		if bf < 1024 {
+			return fmt.Sprintf("%d%s", bf, unit)
+		}
+		bf /= 1024
+	}
+	return fmt.Sprintf("%d", int(bf))
 }

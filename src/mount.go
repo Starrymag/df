@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"strings"
+	"path/filepath"
 
 	"golang.org/x/sys/unix"
 )
@@ -51,7 +52,18 @@ func (m *Mount) Stat() unix.Statfs_t {
 	return m.Metadata.(unix.Statfs_t) // cast to struct
 }
 
-func mounts() ([]Mount, []string, error) {
+// func parseMountInfo() []string {
+// 	filename := "/proc/self/mountinfo"
+
+// 	lines, err := readLines(filename)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	return lines
+// }
+
+func mounts(readSource int, singleFilePath ...[]string) ([]Mount, []string, error) {
 	var warnings []string
 
 	filename := "/proc/self/mountinfo"
@@ -112,6 +124,21 @@ func mounts() ([]Mount, []string, error) {
 		ret = append(ret, d)
 	}
 
+	if readSource == readFromArgs {
+		var m []Mount 
+		for _, v := range(singleFilePath[0]) {
+			var fm []Mount
+			fm, err = findMounts(ret, v)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+
+			m = append(m, fm...)
+		}
+		ret = m
+	}
+
 	return ret, warnings, nil
 }
 
@@ -164,4 +191,48 @@ func readLines(filename string) ([]string, error) {
 	}
 
 	return res, scanner.Err()
+}
+
+func findMounts(mounts []Mount, path string) ([]Mount, error) {
+	var err error
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+	path, err = filepath.EvalSymlinks(path)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var m []Mount
+	for _, v := range mounts {
+		if path == v.Device {
+			return []Mount{v}, nil
+		}
+
+		if strings.HasPrefix(path, v.Mountpoint) {
+			var nm []Mount
+
+			// keep all entries that are as close or closer to the target
+			for _, mv := range m {
+				if len(mv.Mountpoint) >= len(v.Mountpoint) {
+					nm = append(nm, mv)
+				}
+			}
+			m = nm
+
+			// add entry only if we didn't already find something closer
+			if len(nm) == 0 || len(v.Mountpoint) >= len(nm[0].Mountpoint) {
+				m = append(m, v)
+			}
+		}
+	}
+
+	return m, nil
 }
