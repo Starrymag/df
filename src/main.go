@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/juju/gnuflag"
+	"fmt"
+	"github.com/ogier/pflag"
 )
 
 // constants to describe different options
@@ -36,18 +37,20 @@ type Config struct {
 // parse flags and form config
 func parseFlag() Config {
 	// setup flags and parse them all
-	hrFlag := gnuflag.Bool("h", false, "prints in human readable format in power of 1024")
-	HrFlag := gnuflag.Bool("H", false, "prints in human readable format in power of 1000")
-	iFlag := gnuflag.Bool("i", false, "prints Inodes")
-	allFlag := gnuflag.Bool("a", false, "prints all mounted fs")
-	gnuflag.Parse(true)
+	hrFlag := pflag.BoolP("human-readable", "h", false, "prints in human readable format in power of 1024")
+	HrFlag := pflag.BoolP("si", "H", false, "prints in human readable format in power of 1000")
+	iFlag := pflag.BoolP("inodes", "i", false, "prints Inodes")
+	allFlag := pflag.BoolP("all", "a", false, "prints all mounted fs")
+	pflag.Parse()
+
+	fmt.Println(*hrFlag, *HrFlag, *iFlag, *allFlag)
 
 	c := Config{}
 
 	// fill the configuration
-	if len(gnuflag.Args()) != 0 {
+	if len(pflag.Args()) != 0 {
 		c.whichFiles = oneFile
-		c.singleFilePath = gnuflag.Args()	
+		c.singleFilePath = pflag.Args()	
 	} else if *allFlag {
 		c.whichFiles = allFiles
 	} else {
