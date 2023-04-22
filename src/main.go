@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ogier/pflag"
 )
 
@@ -42,8 +41,6 @@ func parseFlag() Config {
 	iFlag := pflag.BoolP("inodes", "i", false, "prints Inodes")
 	allFlag := pflag.BoolP("all", "a", false, "prints all mounted fs")
 	pflag.Parse()
-
-	fmt.Println(*hrFlag, *HrFlag, *iFlag, *allFlag)
 
 	c := Config{}
 

@@ -1,0 +1,5 @@
+Package: dfg
+Version: 1.0
+Architecture: amd64
+Maintainer: Starrymag <mail@mail.com>
+Description: A unix df copy
